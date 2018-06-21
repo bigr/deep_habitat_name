@@ -1,0 +1,36 @@
+#!/usr/bin/env python3
+import sys
+
+from argparse import ArgumentParser
+
+if __name__ == "__main__":
+
+    p = ArgumentParser(prog='deep-habitat-name-generate', description='Generatate deep habitat names');
+    p.add_argument('-c', '--country', help='ISO3166-1 of the country of habitats')
+    p.add_argument('-n', '--count', help='Count to generate', default=1, type=int)
+    p.add_argument('-v', '--verbose', help='Verbosity', action='store_true')
+
+    args = p.parse_args()
+
+    country = args.country
+    count = args.count
+    verbose = args.verbose
+
+    if not verbose:
+        stdout = sys.stdout
+        sys.stdout = open('/dev/null', 'w')
+
+    from deep_habitat_name.generate import generate
+
+    if not verbose:
+        sys.stdout = stdout
+
+
+
+
+    for i, name in enumerate(generate(country)):
+        if i == count:
+            break
+
+        print(name)
+

@@ -1,0 +1,24 @@
+#!/usr/bin/env python3
+
+from argparse import ArgumentParser
+import pickle
+
+from keras.callbacks import ModelCheckpoint
+
+from deep_habitat_name.dataset import get_habitat_names
+
+if __name__ == "__main__":
+
+    p = ArgumentParser(prog='deep-habitat-name-train', description='Trains models');
+    p.add_argument('-c', '--country', help='ISO3166-1 of the country of habitats')
+    p.add_argument('-f', '--force', help='Force not to use cache', action='store_true')
+
+    args = p.parse_args()
+
+    country = args.country
+    force = args.force
+
+
+    get_habitat_names(country, cache=force)
+
+

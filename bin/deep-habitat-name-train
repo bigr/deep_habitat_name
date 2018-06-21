@@ -1,0 +1,47 @@
+#!/usr/bin/env python3
+
+from argparse import ArgumentParser
+import pickle
+
+from keras.callbacks import ModelCheckpoint
+
+from deep_habitat_name.dataset import get_habitat_names
+from deep_habitat_name.train import create_model, gen_charmap, samples_generator, LENGTH
+
+if __name__ == "__main__":
+
+    p = ArgumentParser(prog='deep-habitat-name-train', description='Trains models');
+    p.add_argument('-c', '--country', help='ISO3166-1 of the country of habitats')
+    p.add_argument('-b', '--batch-size', help='Batch size', default=128, type=int)
+    p.add_argument('-e', '--epochs', help='Number of epochs', default=250, type=int)
+    p.add_argument('-s', '--steps-per-epoch', help='Steps per epoch', default=32, type=int)
+    p.add_argument('-w', '--weights', help='Preload weights', action='store_true')
+
+    args = p.parse_args()
+
+
+    country = args.country
+    batch_size = args.batch_size
+    epochs = args.epochs
+    steps_per_epoch = args.steps_per_epoch
+    weights = args.weights
+
+
+    names = get_habitat_names(country)
+
+    chars, char_map = gen_charmap(names)
+
+    with open('{}-charmap.pkl'.format(country),'wb') as f:
+        pickle.dump((chars, char_map), f)
+
+
+    model = create_model(LENGTH, len(char_map[None]))
+
+    if weights:
+        model.load_weights("{}-weights.hdf".format(country))
+
+
+    model.fit_generator(generator=samples_generator(names, char_map,LENGTH,batch_size),steps_per_epoch=steps_per_epoch, epochs=epochs, callbacks=[
+        ModelCheckpoint("{}-weights.hdf".format(country), monitor='loss', verbose=0, save_best_only=True, save_weights_only=False, mode='auto', period=1)
+    ])
+
